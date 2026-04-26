@@ -26,6 +26,7 @@ When deploying RepoDex:
 ## Dependencies
 
 This project uses:
+
 - **Node.js 20+ Alpine** (Docker)
 - **React 19** with SSR
 - **Drizzle ORM** with Turso/libSQL
@@ -37,6 +38,7 @@ Keep dependencies updated with `pnpm update` and monitor for security advisories
 ## Scope
 
 RepoDex is a **self-hosted indexing application**. Security considerations:
+
 - Data is stored in your own database
 - API keys are under your control
 - No user tracking or telemetry
