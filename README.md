@@ -85,14 +85,13 @@ The dev server starts at `http://localhost:5173`.
 
 ## Versioning
 
-This project uses [Changesets](https://github.com/changesets/changesets) for version management and changelog generation.
+Versions are maintained manually in `package.json` and documented in `CHANGELOG.md`. 
 
-```bash
-# After making changes worth documenting:
-pnpm changeset          # describe the change (patch / minor / major)
-pnpm version-packages   # applies the bump and updates CHANGELOG.md
-git add . && git commit -m "release: bump version to x.y.z"
-```
+When releasing a new version:
+1. Update `version` in `package.json`
+2. Document changes in `CHANGELOG.md` (under a new section with the date)
+3. Commit with message: `release: bump version to x.y.z`
+4. Tag the commit: `git tag vx.y.z && git push origin vx.y.z`
 
 ---
 

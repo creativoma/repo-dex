@@ -8,8 +8,6 @@
     "url": "https://github.com/creativoma/repo-dex"
   },
   "scripts": {
-    "changeset": "changeset",
-    "version-packages": "changeset version",
     "dev": "react-router dev",
     "build": "react-router build",
     "start": "react-router-serve ./build/server/index.js",
@@ -57,7 +55,6 @@
     }
   },
   "devDependencies": {
-    "@changesets/cli": "^2.31.0",
     "@eslint/js": "^10.0.1",
     "@react-router/dev": "^7.14.2",
     "@react-router/node": "^7.14.2",
