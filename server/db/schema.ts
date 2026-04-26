@@ -7,10 +7,6 @@ export const resources = sqliteTable("resources", {
   title: text("title").notNull(),
   description: text("description"),
   author: text("author"),
-  language: text("language"),
-  difficulty: text("difficulty", {
-    enum: ["beginner", "intermediate", "advanced"],
-  }),
   stars: integer("stars"),
   weeklyDownloads: integer("weekly_downloads"),
   rawMeta: text("raw_meta").notNull().default("{}"),
