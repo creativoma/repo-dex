@@ -11,8 +11,6 @@ import { useVirtualizer } from "@tanstack/react-virtual";
 import { trpc } from "~/lib/trpc";
 import { useDebounce } from "~/hooks/useDebounce";
 import { TypeIcon } from "~/components/TypeIcon";
-import { LanguageBadge } from "~/components/LanguageBadge";
-import { DifficultyBadge } from "~/components/DifficultyBadge";
 import { SortIcon } from "~/components/SortIcon";
 import { FilterSection } from "~/components/FilterSection";
 import { FilterChip } from "~/components/FilterChip";
@@ -97,8 +95,6 @@ export default function Index() {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [search, setSearch] = useState("");
   const [typeFilters, setTypeFilters] = useState<string[]>([]);
-  const [difficultyFilters, setDifficultyFilters] = useState<string[]>([]);
-  const [languageFilters, setLanguageFilters] = useState<string[]>([]);
   const [tagFilters, setTagFilters] = useState<string[]>([]);
   const [editingResource, setEditingResource] = useState<Resource | null>(null);
   const [deletingResource, setDeletingResource] = useState<Resource | null>(null);
@@ -119,7 +115,6 @@ export default function Index() {
   });
 
   const { data: facetsData } = trpc.resources.facets.useQuery();
-  const languages = facetsData?.languages ?? [];
   const allTags = facetsData?.tags ?? [];
   const TAG_PREVIEW = 15;
   const visibleTags = showAllTags ? allTags : allTags.slice(0, TAG_PREVIEW);
@@ -137,10 +132,6 @@ export default function Index() {
         limit: 500,
         search: debouncedSearch || undefined,
         types: typeFilters.length ? (typeFilters as ("github" | "npm" | "web")[]) : undefined,
-        difficulties: difficultyFilters.length
-          ? (difficultyFilters as ("beginner" | "intermediate" | "advanced")[])
-          : undefined,
-        languages: languageFilters.length ? languageFilters : undefined,
         tags: tagFilters.length ? tagFilters : undefined,
         sortBy,
         sortOrder,
@@ -195,15 +186,6 @@ export default function Index() {
               </div>
             </div>
           );
-        },
-      }),
-      col.accessor("language", {
-        id: "language",
-        header: "Lang",
-        enableSorting: false,
-        cell: ({ getValue }) => {
-          const v = getValue();
-          return v ? <LanguageBadge lang={v} /> : <span className="text-line">—</span>;
         },
       }),
       col.accessor("tags", {
@@ -264,12 +246,6 @@ export default function Index() {
         },
         sortingFn: (a, b) =>
           (a.original.weeklyDownloads ?? -1) - (b.original.weeklyDownloads ?? -1),
-      }),
-      col.accessor("difficulty", {
-        id: "difficulty",
-        header: "Level",
-        enableSorting: false,
-        cell: ({ getValue }) => <DifficultyBadge level={getValue()} />,
       }),
       ...(isAdmin
         ? [
@@ -365,14 +341,11 @@ export default function Index() {
   const paddingBottom =
     virtualRows.length > 0 ? totalSize - (virtualRows[virtualRows.length - 1]?.end ?? 0) : 0;
 
-  const activeFiltersCount =
-    typeFilters.length + difficultyFilters.length + languageFilters.length + tagFilters.length;
+  const activeFiltersCount = typeFilters.length + tagFilters.length;
 
   function clearAll() {
     setSearch("");
     setTypeFilters([]);
-    setDifficultyFilters([]);
-    setLanguageFilters([]);
     setTagFilters([]);
   }
 
@@ -467,30 +440,6 @@ export default function Index() {
                 />
               ))}
             </FilterSection>
-
-            <FilterSection title="Difficulty">
-              {(["beginner", "intermediate", "advanced"] as const).map((d) => (
-                <FilterChip
-                  key={d}
-                  label={d}
-                  active={difficultyFilters.includes(d)}
-                  onClick={() => toggle(difficultyFilters, setDifficultyFilters, d)}
-                />
-              ))}
-            </FilterSection>
-
-            {languages.length > 0 && (
-              <FilterSection title="Language">
-                {languages.map((lang) => (
-                  <FilterChip
-                    key={lang}
-                    label={lang}
-                    active={languageFilters.includes(lang)}
-                    onClick={() => toggle(languageFilters, setLanguageFilters, lang)}
-                  />
-                ))}
-              </FilterSection>
-            )}
 
             {allTags.length > 0 && (
               <FilterSection title="Tags">
