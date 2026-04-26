@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.3.0
+
+### Minor Changes
+
+- 183c1af: Add changesets for version management, dynamic version read from package.json, repository URL, and improved README.
+
 All notable changes to this project will be documented in this file.
 
 The format is based on Keep a Changelog,
