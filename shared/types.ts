@@ -1,7 +1,5 @@
 export type ResourceType = "github" | "npm" | "web";
 
-export type DifficultyLevel = "beginner" | "intermediate" | "advanced";
-
 export interface Resource {
   id: string;
   url: string;
@@ -9,8 +7,6 @@ export interface Resource {
   title: string;
   description: string | null;
   author: string | null;
-  language: string | null;
-  difficulty: DifficultyLevel | null;
   stars: number | null;
   weeklyDownloads: number | null;
   tags: string[];
@@ -23,8 +19,6 @@ export interface AnalyzedResource {
   description: string;
   tags: string[];
   author: string | null;
-  difficulty: DifficultyLevel | null;
-  language: string | null;
   type: ResourceType;
   stars: number | null;
   weeklyDownloads: number | null;
