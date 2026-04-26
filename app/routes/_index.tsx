@@ -1,4 +1,5 @@
 import { useRef, useMemo, useState, useEffect } from "react";
+import { version } from "../../package.json";
 import {
   useReactTable,
   getCoreRowModel,
@@ -380,7 +381,7 @@ export default function Index() {
             </div>
             <div className="mt-2.5 flex flex-wrap items-center gap-x-2 gap-y-1">
               <span className="bg-surface-alt text-muted rounded px-1.5 py-0.5 font-mono text-[10px] font-medium">
-                v0.2.0
+                v{version}
               </span>
               <span className="bg-surface-alt text-muted rounded px-1.5 py-0.5 font-mono text-[10px] font-medium">
                 MIT
@@ -472,7 +473,7 @@ export default function Index() {
               <span className="text-muted text-[11px]">by creativoma</span>
               <div className="flex items-center gap-3">
                 <a
-                  href="https://github.com/creativoma/RepoDex"
+                  href="https://github.com/creativoma/repo-dex"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-muted hover:text-ink transition-colors"

@@ -1,160 +1,126 @@
 # RepoDex
 
-Web application to index and analyze developer resources (GitHub, npm, and web URLs) with search, tag filters, an admin area, and JWT-based authentication.
+A self-hosted web application to index, search, and analyze developer resources — GitHub repos, npm packages, and arbitrary URLs — with AI-powered metadata extraction, tag-based filtering, and a JWT-authenticated admin area.
 
-## Stack
+**Live:** [repo-dex.vercel.app](https://repo-dex.vercel.app) &nbsp;·&nbsp; **Source:** [github.com/creativoma/repo-dex](https://github.com/creativoma/repo-dex)
 
-- React 19 + React Router 7
-- TypeScript
-- tRPC 11 + TanStack React Query
-- Drizzle ORM + Turso/libSQL
-- Vitest (unit tests and coverage)
-- ESLint + Prettier
-- Docker (multi-stage build)
+---
 
-## Requirements
+## Architecture
+
+| Layer            | Technology                                  |
+| ---------------- | ------------------------------------------- |
+| Frontend         | React 19 + React Router 7 (SSR)             |
+| API              | tRPC 11 + TanStack React Query              |
+| Database         | Drizzle ORM + Turso / libSQL                |
+| AI analysis      | Google Gemini                               |
+| Auth             | JWT (bcrypt-hashed password, no user table) |
+| Styling          | Tailwind CSS v4                             |
+| Testing          | Vitest + coverage-v8                        |
+| Containerization | Docker (multi-stage, Node 20 Alpine)        |
+
+---
+
+## Getting started
+
+### Prerequisites
 
 - Node.js 20+
 - pnpm
-- Turso/libSQL database (remote, or local using `file:./local.db`)
+- A Turso database (or `file:./local.db` for local-only use)
+- A Gemini API key
 
-## Development Environment
+### Setup
 
-Use this mode for local coding, testing, and debugging.
+```bash
+pnpm install
+cp .env.example .env          # fill in the variables below
+pnpm gen:password <password>  # prints the bcrypt hash for ADMIN_PASSWORD_HASH
+pnpm db:push                  # apply schema
+pnpm db:seed                  # optional sample data
+pnpm dev
+```
 
-### Development Setup
+The dev server starts at `http://localhost:5173`.
 
-1. Install dependencies:
-   ```bash
-   pnpm install
-   ```
-2. Create your environment file:
-   ```bash
-   cp .env.example .env
-   ```
-3. Generate an admin password hash:
-   ```bash
-   pnpm gen:password <your-password>
-   ```
-4. Apply the database schema:
-   ```bash
-   pnpm db:push
-   ```
-5. (Optional) Seed data:
-   ```bash
-   pnpm db:seed
-   ```
-6. Start the development server:
-   ```bash
-   pnpm dev
-   ```
+---
 
-## Environment Variables
+## Environment variables
 
-Based on `.env.example` and actual runtime usage in the codebase:
+| Variable              | Required    | Description                                                                          |
+| --------------------- | ----------- | ------------------------------------------------------------------------------------ |
+| `TURSO_URL`           | Yes         | `libsql://…` for remote, `file:./local.db` for local                                 |
+| `TURSO_AUTH_TOKEN`    | Remote only | Turso auth token — not used with `file:` URLs                                        |
+| `GEMINI_API_KEY`      | Yes         | Used for AI metadata extraction on resource analysis                                 |
+| `ADMIN_USER`          | Yes         | Admin username                                                                       |
+| `ADMIN_PASSWORD_HASH` | Yes         | bcrypt hash — generate with `pnpm gen:password`                                      |
+| `JWT_SECRET`          | Yes         | At least 32 random characters                                                        |
+| `PUBLIC_ORIGIN`       | Production  | Full public URL (e.g. `https://repo-dex.example.com`) — required for CSRF protection |
+| `GITHUB_TOKEN`        | Recommended | PAT with no scopes — raises GitHub API rate limit from 60 to 5 000 req/h             |
+| `NODE_ENV`            | No          | `development` or `production`                                                        |
 
-| Variable              | Required         | Description                                                                                                |
-| --------------------- | ---------------- | ---------------------------------------------------------------------------------------------------------- |
-| `TURSO_URL`           | Yes              | Turso/libSQL URL. For local development you can use `file:./local.db`.                                     |
-| `TURSO_AUTH_TOKEN`    | Remote only      | Turso auth token. Not used with `file:` URLs.                                                              |
-| `GEMINI_API_KEY`      | Yes              | API key for Gemini-based URL/resource analysis.                                                            |
-| `ADMIN_USER`          | Yes              | Single admin username for login.                                                                           |
-| `ADMIN_PASSWORD_HASH` | Yes              | Bcrypt hash for the admin password. Generate with `pnpm gen:password`.                                     |
-| `JWT_SECRET`          | Yes              | Secret used to sign/verify JWTs. Must be 32+ chars.                                                        |
-| `PUBLIC_ORIGIN`       | Yes (production) | Public URL of the app (e.g. `https://repodex.yourdomain.com`). Required for CSRF protection in production. |
-| `GITHUB_TOKEN`        | No (recommended) | GitHub Personal Access Token. Raises API rate limit from 60 to 5 000 req/hour.                             |
-| `NODE_ENV`            | No               | `development` or `production`.                                                                             |
-
-### Development Notes
-
-- `TURSO_URL` can be `file:./local.db` for local development.
-- `NODE_ENV` is typically `development` when running `pnpm dev`.
-- `PUBLIC_ORIGIN` is optional locally unless you test CSRF/origin restrictions, but **required in production**.
-- `GITHUB_TOKEN` is optional but strongly recommended. Without it, the GitHub API is limited to 60 unauthenticated requests per hour. Generate a token with no scopes at <https://github.com/settings/tokens>.
+---
 
 ## Scripts
 
-- `pnpm dev`: start app in development mode
-- `pnpm build`: create production build
-- `pnpm start`: serve `build/server/index.js`
-- `pnpm typecheck`: generate route types and run `tsc`
-- `pnpm db:push`: apply Drizzle schema to the database
-- `pnpm db:studio`: open Drizzle Studio
-- `pnpm db:seed`: seed test/sample data
-- `pnpm gen:password <password>`: generate bcrypt hash for `.env`
-- `pnpm test`: run tests once
-- `pnpm test:watch`: run tests in watch mode
-- `pnpm test:coverage`: run tests with coverage
-- `pnpm lint`: run lint checks
-- `pnpm lint:fix`: auto-fix lint issues
-- `pnpm format`: format code
-- `pnpm format:check`: validate formatting
+| Command                        | Description                                  |
+| ------------------------------ | -------------------------------------------- |
+| `pnpm dev`                     | Start dev server with HMR                    |
+| `pnpm build`                   | Production build                             |
+| `pnpm start`                   | Serve production build                       |
+| `pnpm typecheck`               | Generate route types and run `tsc`           |
+| `pnpm test`                    | Run test suite                               |
+| `pnpm test:coverage`           | Run tests with v8 coverage                   |
+| `pnpm lint` / `lint:fix`       | ESLint                                       |
+| `pnpm format` / `format:check` | Prettier                                     |
+| `pnpm db:push`                 | Apply Drizzle schema                         |
+| `pnpm db:studio`               | Open Drizzle Studio                          |
+| `pnpm db:migrate`              | Run migration script                         |
+| `pnpm db:seed`                 | Seed sample data                             |
+| `pnpm gen:password <pw>`       | Generate bcrypt hash for `.env`              |
+| `pnpm changeset`               | Open interactive prompt to describe a change |
+| `pnpm version-packages`        | Bump version and update `CHANGELOG.md`       |
 
-## Testing
+---
 
-Main commands:
+## Versioning
+
+This project uses [Changesets](https://github.com/changesets/changesets) for version management and changelog generation.
 
 ```bash
-pnpm test
-pnpm test:coverage
+# After making changes worth documenting:
+pnpm changeset          # describe the change (patch / minor / major)
+pnpm version-packages   # applies the bump and updates CHANGELOG.md
+git add . && git commit -m "release: bump version to x.y.z"
 ```
 
-Current tests cover authentication, URL type detection, and server-side services in `server/**/*.test.ts`.
+---
 
-## Production Environment
+## Deployment
 
-Use this mode for deployed runtime environments.
-
-### Production Requirements
-
-- Set all required environment variables with production-safe values.
-- Use a strong random `JWT_SECRET` (32+ characters).
-- Use a remote Turso/libSQL instance and configure `TURSO_AUTH_TOKEN`.
-- Set `NODE_ENV=production`.
-- Set `PUBLIC_ORIGIN` to the public URL of your app.
-
-### Deployment
-
-### Option 1: Node runtime
+### Node
 
 ```bash
 pnpm install --frozen-lockfile
 pnpm build
-pnpm start
+pnpm start               # listens on port 3000 by default
 ```
 
-The server listens on port `3000` by default. Set `PORT` in your platform if needed.
-
-### Option 2: Docker
+### Docker
 
 ```bash
 docker build -t repodex .
 docker run --rm -p 3000:3000 --env-file .env repodex
 ```
 
-The `Dockerfile` uses a multi-stage Node 20 Alpine build and runs `react-router-serve`.
+The `Dockerfile` uses a multi-stage Node 20 Alpine build.
 
-### Option 3: Vercel
+### Vercel
 
-Connect the GitHub repository in the Vercel dashboard. Vercel detects React Router 7 automatically via `react-router.config.ts` and `vercel.json`.
+Connect the repository in the Vercel dashboard — React Router 7 is detected automatically via `react-router.config.ts` and `vercel.json`. Set all required environment variables in the project settings. No additional adapters needed.
 
-Set the following environment variables in the Vercel project settings:
+---
 
-| Variable              | Notes                                                 |
-| --------------------- | ----------------------------------------------------- |
-| `TURSO_URL`           | Remote Turso URL (`libsql://...`)                     |
-| `TURSO_AUTH_TOKEN`    | Turso auth token                                      |
-| `GEMINI_API_KEY`      | Gemini API key                                        |
-| `ADMIN_USER`          | Admin username                                        |
-| `ADMIN_PASSWORD_HASH` | Generated with `pnpm gen:password`                    |
-| `JWT_SECRET`          | Random 32+ char string                                |
-| `PUBLIC_ORIGIN`       | Your Vercel domain, e.g. `https://repodex.vercel.app` |
-| `GITHUB_TOKEN`        | Optional — raises GitHub API rate limit               |
+## License
 
-No additional packages or adapters are required.
-
-## Operational Notes
-
-- Do not commit secrets to the repository.
-- If you use remote Turso, validate connectivity and token before running `db:push`.
-- Treat `build/` and `coverage/` as generated artifacts, not source of truth.
+MIT
