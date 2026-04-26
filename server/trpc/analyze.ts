@@ -41,8 +41,6 @@ export const analyzeRouter = router({
         description: aiResult.description ?? (rawMeta.description as string) ?? "",
         tags: aiResult.tags ?? (rawMeta.topics as string[]) ?? (rawMeta.keywords as string[]) ?? [],
         author: aiResult.author ?? (rawMeta.author as string) ?? null,
-        difficulty: aiResult.difficulty ?? null,
-        language: aiResult.language ?? null,
         type,
         stars,
         weeklyDownloads,

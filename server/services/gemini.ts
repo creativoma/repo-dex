@@ -12,8 +12,6 @@ const PROMPT_TEMPLATE = `You are a developer resource cataloger. Given the follo
 - description: 2-3 sentence summary of what this resource is and who it's for (string)
 - tags: array of up to 8 lowercase tags (programming languages, frameworks, topics, e.g. ["typescript","react","tutorial"])
 - author: author or organization name (string or null)
-- difficulty: one of "beginner", "intermediate", "advanced" based on content complexity (string or null)
-- language: ISO 639-1 language code of the content, e.g. "en", "es" (string or null)
 
 Return ONLY valid JSON with no markdown code fences, no explanation.
 
@@ -37,8 +35,6 @@ export async function analyzeWithGemini(
       description: parsed.description,
       tags: Array.isArray(parsed.tags) ? parsed.tags : [],
       author: parsed.author,
-      difficulty: parsed.difficulty,
-      language: parsed.language,
     };
   } catch {
     return {};

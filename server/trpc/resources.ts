@@ -14,8 +14,6 @@ export function rowToResource(row: typeof resources.$inferSelect, tagNames: stri
     title: row.title,
     description: row.description,
     author: row.author,
-    language: row.language,
-    difficulty: row.difficulty as Resource["difficulty"],
     stars: row.stars,
     weeklyDownloads: row.weeklyDownloads,
     tags: tagNames,
@@ -57,8 +55,6 @@ const resourceCreateSchema = z.object({
   title: z.string().min(1),
   description: z.string().optional(),
   author: z.string().optional(),
-  language: z.string().optional(),
-  difficulty: z.enum(["beginner", "intermediate", "advanced"]).optional(),
   stars: z.number().int().optional(),
   weeklyDownloads: z.number().int().optional(),
   tags: z.array(z.string()).default([]),
@@ -75,16 +71,8 @@ const SORT_COLUMNS = {
 export const resourcesRouter = router({
   facets: publicProcedure.query(async () => {
     const db = getDb();
-    const [languageRows, tagRows] = await Promise.all([
-      db
-        .selectDistinct({ language: resources.language })
-        .from(resources)
-        .where(sql`${resources.language} IS NOT NULL`)
-        .orderBy(asc(resources.language)),
-      db.select({ name: tags.name }).from(tags).orderBy(asc(tags.name)),
-    ]);
+    const tagRows = await db.select({ name: tags.name }).from(tags).orderBy(asc(tags.name));
     return {
-      languages: languageRows.map((r) => r.language).filter(Boolean) as string[],
       tags: tagRows.map((r) => r.name),
     };
   }),
@@ -97,8 +85,6 @@ export const resourcesRouter = router({
         limit: z.number().int().min(1).max(500).default(50),
         search: z.string().optional(),
         types: z.array(z.enum(["github", "npm", "web"])).optional(),
-        difficulties: z.array(z.enum(["beginner", "intermediate", "advanced"])).optional(),
-        languages: z.array(z.string()).optional(),
         tags: z.array(z.string()).optional(),
         sortBy: z.enum(["createdAt", "stars", "weeklyDownloads", "title"]).default("createdAt"),
         sortOrder: z.enum(["asc", "desc"]).default("desc"),
@@ -122,12 +108,6 @@ export const resourcesRouter = router({
       }
       if (input.types?.length) {
         conditions.push(inArray(resources.type, input.types));
-      }
-      if (input.difficulties?.length) {
-        conditions.push(inArray(resources.difficulty, input.difficulties));
-      }
-      if (input.languages?.length) {
-        conditions.push(inArray(resources.language, input.languages));
       }
       if (input.tags?.length) {
         for (const tag of input.tags) {
@@ -202,8 +182,6 @@ export const resourcesRouter = router({
       title: input.title,
       description: input.description ?? null,
       author: input.author ?? null,
-      language: input.language ?? null,
-      difficulty: input.difficulty ?? null,
       stars: input.stars ?? null,
       weeklyDownloads: input.weeklyDownloads ?? null,
       rawMeta: JSON.stringify(input.rawMeta),
@@ -233,8 +211,6 @@ export const resourcesRouter = router({
           title: input.title,
           description: input.description ?? null,
           author: input.author ?? null,
-          language: input.language ?? null,
-          difficulty: input.difficulty ?? null,
           stars: input.stars ?? null,
           weeklyDownloads: input.weeklyDownloads ?? null,
           rawMeta: JSON.stringify(input.rawMeta),
