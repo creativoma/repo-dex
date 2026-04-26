@@ -356,8 +356,6 @@ function generateGithubResource(now: number): ResourceWithTags {
       title: `${author}/${repo}`,
       description: `A ${difficulty} ${lang} ${repo.replace(/-/g, " ")} maintained by ${author}. ${stars.toLocaleString()} stars on GitHub.`,
       author,
-      language: lang,
-      difficulty,
       stars,
       weeklyDownloads: null,
       rawMeta: JSON.stringify({}),
@@ -372,7 +370,6 @@ function generateNpmResource(now: number): ResourceWithTags {
   const pkg = pick(NPM_PACKAGES);
   const author = pick(NPM_AUTHORS);
   const lang = pick(["TypeScript", "JavaScript"]);
-  const difficulty = pick(DIFFICULTIES);
   const resourceTags = pickN(TAG_POOL, randInt(2, 4));
   const downloads = randInt(10_000, 80_000_000);
   const suffix = nanoid(8);
@@ -385,8 +382,6 @@ function generateNpmResource(now: number): ResourceWithTags {
       title: `${pkg}-${suffix}`,
       description: `${lang} package for ${pkg.replace(/-/g, " ")}. ${downloads.toLocaleString()} weekly downloads.`,
       author,
-      language: lang,
-      difficulty,
       stars: null,
       weeklyDownloads: downloads,
       rawMeta: JSON.stringify({}),
@@ -414,8 +409,6 @@ function generateWebResource(now: number): ResourceWithTags {
       title: `${prefix} ${topic}`,
       description: `${prefix} ${topic} — a ${difficulty}-level resource covering everything you need to know. Published by ${author}.`,
       author,
-      language: null,
-      difficulty,
       stars: null,
       weeklyDownloads: null,
       rawMeta: JSON.stringify({}),
