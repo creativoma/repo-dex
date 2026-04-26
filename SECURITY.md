@@ -1,30 +1,45 @@
 # Security Policy
 
-## Supported Versions
-
-| Version | Supported |
-| ------- | --------- |
-| 0.1.x   | Yes       |
-| < 0.1.0 | No        |
-
 ## Reporting a Vulnerability
 
-If you find a security vulnerability, please report it privately.
+If you discover a security vulnerability in RepoDex, please email **ma.marianoalvarez@gmail.com** with:
 
-1. Send an email to: security@repodex.local
-2. Include a clear description, impact, and reproduction steps.
-3. If possible, include a minimal proof of concept and affected files/routes.
-4. Do not open a public issue for unpatched vulnerabilities.
+- Description of the vulnerability
+- Steps to reproduce (if applicable)
+- Potential impact
+- Your suggested fix (if available)
 
-## Response Process
+**Please do not** open a public GitHub issue for security vulnerabilities. This allows us to patch the issue before public disclosure.
 
-- We will acknowledge receipt within 3 business days.
-- We will triage and assess severity.
-- We will provide an estimated remediation timeline.
-- Once fixed, we will coordinate disclosure details with the reporter.
+## Security Best Practices
 
-## Security Best Practices for Contributors
+When deploying RepoDex:
 
-- Never commit secrets, API keys, or `.env` values.
-- Use least-privilege tokens and rotate credentials periodically.
-- Keep dependencies updated and run tests/lint before submitting PRs.
+1. **Environment Variables**: Never commit `.env` files. Always use secure secret management (Vercel secrets, environment variable services, etc.)
+2. **JWT Secret**: Use a cryptographically secure random string (32+ characters). Generate with: `openssl rand -base64 32`
+3. **Admin Credentials**: Use a strong password. Hash it with `pnpm gen:password <password>`
+4. **GitHub Token** (optional): Use a PAT with no scopes for read-only access
+5. **HTTPS**: Always deploy with HTTPS in production
+6. **CSRF Protection**: Set `PUBLIC_ORIGIN` to your exact domain URL
+7. **Database**: Use Turso or other managed databases. Keep `TURSO_AUTH_TOKEN` secure
+
+## Dependencies
+
+This project uses:
+- **Node.js 20+ Alpine** (Docker)
+- **React 19** with SSR
+- **Drizzle ORM** with Turso/libSQL
+- **tRPC 11** for type-safe APIs
+- **Google Gemini API** for AI analysis
+
+Keep dependencies updated with `pnpm update` and monitor for security advisories.
+
+## Scope
+
+RepoDex is a **self-hosted indexing application**. Security considerations:
+- Data is stored in your own database
+- API keys are under your control
+- No user tracking or telemetry
+- No external data sharing (except Gemini API for analysis)
+
+For questions or concerns, reach out: **ma.marianoalvarez@gmail.com**
