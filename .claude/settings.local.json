@@ -18,7 +18,9 @@
       "Bash(git config *)",
       "Bash(gh auth *)",
       "Bash(gh repo *)",
-      "Bash(git add *)"
+      "Bash(git add *)",
+      "Bash(git remote *)",
+      "Bash(git push *)"
     ]
   }
 }
