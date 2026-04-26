@@ -6,7 +6,6 @@ import type { Resource } from "../../shared/types";
 
 type LoginActionData = { error?: string };
 
-const difficultyOptions = ["beginner", "intermediate", "advanced"] as const;
 const resourceTypeOptions: Resource["type"][] = ["github", "npm", "web"];
 
 const defaultForm = {
@@ -14,8 +13,6 @@ const defaultForm = {
   title: "",
   description: "",
   author: "",
-  language: "",
-  difficulty: "" as "" | (typeof difficultyOptions)[number],
   starsInput: "",
   weeklyDownloadsInput: "",
   rawMetaText: "{}",
@@ -127,8 +124,6 @@ export function AdminControls({ editingResource = null, onEditClose }: AdminCont
         title: editingResource.title,
         description: editingResource.description ?? "",
         author: editingResource.author ?? "",
-        language: editingResource.language ?? "",
-        difficulty: editingResource.difficulty ?? "",
         starsInput: editingResource.stars != null ? String(editingResource.stars) : "",
         weeklyDownloadsInput:
           editingResource.weeklyDownloads != null ? String(editingResource.weeklyDownloads) : "",
@@ -157,8 +152,6 @@ export function AdminControls({ editingResource = null, onEditClose }: AdminCont
         title: data.title,
         description: data.description,
         author: data.author ?? "",
-        language: data.language ?? "",
-        difficulty: data.difficulty ?? "",
         starsInput: data.stars == null ? "" : String(data.stars),
         weeklyDownloadsInput: data.weeklyDownloads == null ? "" : String(data.weeklyDownloads),
         rawMetaText: JSON.stringify(data.rawMeta ?? {}, null, 2),
@@ -288,8 +281,6 @@ export function AdminControls({ editingResource = null, onEditClose }: AdminCont
       title: form.title,
       description: form.description || undefined,
       author: form.author || undefined,
-      language: form.language || undefined,
-      difficulty: form.difficulty || undefined,
       stars: stars ? Number.parseInt(stars, 10) : undefined,
       weeklyDownloads: weeklyDownloads ? Number.parseInt(weeklyDownloads, 10) : undefined,
       tags: form.tags,
@@ -477,23 +468,6 @@ export function AdminControls({ editingResource = null, onEditClose }: AdminCont
 
                 <div>
                   <label
-                    htmlFor="new-resource-language"
-                    className="mb-1.5 block text-sm text-slate-700"
-                  >
-                    Language
-                  </label>
-                  <input
-                    id="new-resource-language"
-                    type="text"
-                    value={form.language}
-                    onChange={(e) => setForm((prev) => ({ ...prev, language: e.target.value }))}
-                    placeholder="en"
-                    className="focus:border-primary w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 focus:outline-none"
-                  />
-                </div>
-
-                <div>
-                  <label
                     htmlFor="new-resource-author"
                     className="mb-1.5 block text-sm text-slate-700"
                   >
@@ -576,33 +550,6 @@ export function AdminControls({ editingResource = null, onEditClose }: AdminCont
                   {rawMetaError && <p className="mt-1 text-xs text-rose-600">{rawMetaError}</p>}
                 </div>
               </details>
-
-              <div>
-                <label
-                  htmlFor="new-resource-difficulty"
-                  className="mb-1.5 block text-sm text-slate-700"
-                >
-                  Difficulty
-                </label>
-                <select
-                  id="new-resource-difficulty"
-                  value={form.difficulty}
-                  onChange={(e) =>
-                    setForm((prev) => ({
-                      ...prev,
-                      difficulty: e.target.value as "" | (typeof difficultyOptions)[number],
-                    }))
-                  }
-                  className="focus:border-primary w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 focus:outline-none"
-                >
-                  <option value="">-</option>
-                  {difficultyOptions.map((option) => (
-                    <option key={option} value={option}>
-                      {option}
-                    </option>
-                  ))}
-                </select>
-              </div>
 
               <div>
                 <label htmlFor="new-resource-tag" className="mb-1.5 block text-sm text-slate-700">

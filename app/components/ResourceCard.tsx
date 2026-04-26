@@ -1,30 +1,6 @@
 import type { Resource } from "../../shared/types";
 import { TagBadge } from "./TagBadge";
 
-const difficultyConfig: Record<
-  string,
-  { bg: string; color: string; border: string; label: string }
-> = {
-  beginner: {
-    bg: "rgba(21,190,83,0.12)",
-    color: "#108c3d",
-    border: "1px solid rgba(21,190,83,0.35)",
-    label: "Beginner",
-  },
-  intermediate: {
-    bg: "rgba(155,104,41,0.12)",
-    color: "#9b6829",
-    border: "1px solid rgba(155,104,41,0.35)",
-    label: "Intermediate",
-  },
-  advanced: {
-    bg: "rgba(234,34,97,0.12)",
-    color: "#ea2261",
-    border: "1px solid rgba(234,34,97,0.35)",
-    label: "Advanced",
-  },
-};
-
 interface ResourceCardProps {
   resource: Resource;
   activeTags?: string[];
@@ -32,8 +8,6 @@ interface ResourceCardProps {
 }
 
 export function ResourceCard({ resource, activeTags = [], onTagClick }: ResourceCardProps) {
-  const diff = resource.difficulty ? difficultyConfig[resource.difficulty] : null;
-
   return (
     <article className="group border-line rounded-lg border bg-white p-5 shadow-[rgba(23,23,23,0.06)_0px_3px_6px] transition-shadow duration-150 hover:shadow-[rgba(50,50,93,0.12)_0px_8px_24px_-8px,rgba(0,0,0,0.06)_0px_4px_8px_-4px]">
       <div className="flex items-start justify-between gap-3">
@@ -48,18 +22,6 @@ export function ResourceCard({ resource, activeTags = [], onTagClick }: Resource
           </a>
           {resource.author && <p className="text-muted mt-0.5 text-[11px]">by {resource.author}</p>}
         </div>
-        {diff && (
-          <span
-            className="shrink-0 rounded px-1.5 py-px text-[10px] font-medium"
-            style={{
-              backgroundColor: diff.bg,
-              color: diff.color,
-              border: diff.border,
-            }}
-          >
-            {diff.label}
-          </span>
-        )}
       </div>
 
       {resource.description && (
@@ -102,11 +64,6 @@ export function ResourceCard({ resource, activeTags = [], onTagClick }: Resource
               : resource.weeklyDownloads >= 1000
                 ? `${(resource.weeklyDownloads / 1000).toFixed(0)}k/wk`
                 : `${resource.weeklyDownloads}/wk`}
-          </span>
-        )}
-        {resource.language && (
-          <span className="border-line text-ink-mid rounded border bg-white px-1.5 text-[10px]">
-            {resource.language}
           </span>
         )}
       </div>

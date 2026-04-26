@@ -380,7 +380,7 @@ export default function Index() {
             </div>
             <div className="mt-2.5 flex flex-wrap items-center gap-x-2 gap-y-1">
               <span className="bg-surface-alt text-muted rounded px-1.5 py-0.5 font-mono text-[10px] font-medium">
-                v0.1.0
+                v0.2.0
               </span>
               <span className="bg-surface-alt text-muted rounded px-1.5 py-0.5 font-mono text-[10px] font-medium">
                 MIT

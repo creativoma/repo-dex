@@ -1,9 +1,6 @@
-import type { Resource } from "../../shared/types";
+type DifficultyLevel = "beginner" | "intermediate" | "advanced";
 
-const DIFFICULTY_CONFIG: Record<
-  NonNullable<Resource["difficulty"]>,
-  { className: string; label: string }
-> = {
+const DIFFICULTY_CONFIG: Record<DifficultyLevel, { className: string; label: string }> = {
   beginner: {
     className: "bg-[rgba(21,190,83,0.12)] text-[#108c3d] border-[rgba(21,190,83,0.35)]",
     label: "Beginner",
@@ -18,7 +15,7 @@ const DIFFICULTY_CONFIG: Record<
   },
 };
 
-export function DifficultyBadge({ level }: { level: Resource["difficulty"] }) {
+export function DifficultyBadge({ level }: { level: DifficultyLevel | null | undefined }) {
   if (!level) return <span className="text-line">—</span>;
   const { className, label } = DIFFICULTY_CONFIG[level];
   return (
