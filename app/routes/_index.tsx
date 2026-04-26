@@ -11,6 +11,7 @@ import {
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { trpc } from "~/lib/trpc";
 import { useDebounce } from "~/hooks/useDebounce";
+import { formatRelativeTime } from "~/lib/formatDate";
 import { TypeIcon } from "~/components/TypeIcon";
 import { SortIcon } from "~/components/SortIcon";
 import { FilterSection } from "~/components/FilterSection";
@@ -86,7 +87,7 @@ export function meta() {
 
 const col = createColumnHelper<Resource>();
 
-const SERVER_SORT_COLS = new Set(["stars", "weeklyDownloads", "title"]);
+const SERVER_SORT_COLS = new Set(["stars", "weeklyDownloads", "title", "createdAt", "updatedAt"]);
 
 // ── Main component ────────────────────────────────────────────────────────────
 
@@ -123,7 +124,7 @@ export default function Index() {
   const sortCol = sorting[0];
   const sortBy =
     sortCol && SERVER_SORT_COLS.has(sortCol.id)
-      ? (sortCol.id as "stars" | "weeklyDownloads" | "title")
+      ? (sortCol.id as "createdAt" | "updatedAt" | "stars" | "weeklyDownloads" | "title")
       : "createdAt";
   const sortOrder = sortCol ? (sortCol.desc ? "desc" : "asc") : "desc";
 
@@ -247,6 +248,15 @@ export default function Index() {
         },
         sortingFn: (a, b) =>
           (a.original.weeklyDownloads ?? -1) - (b.original.weeklyDownloads ?? -1),
+      }),
+      col.accessor("updatedAt", {
+        id: "updatedAt",
+        header: "Updated",
+        cell: ({ getValue }) => {
+          const timestamp = getValue();
+          return <span className="text-muted text-[12px]">{formatRelativeTime(timestamp)}</span>;
+        },
+        sortingFn: (a, b) => a.original.updatedAt - b.original.updatedAt,
       }),
       ...(isAdmin
         ? [

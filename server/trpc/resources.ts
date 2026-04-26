@@ -63,6 +63,7 @@ const resourceCreateSchema = z.object({
 
 const SORT_COLUMNS = {
   createdAt: resources.createdAt,
+  updatedAt: resources.updatedAt,
   stars: resources.stars,
   weeklyDownloads: resources.weeklyDownloads,
   title: resources.title,
@@ -86,7 +87,9 @@ export const resourcesRouter = router({
         search: z.string().optional(),
         types: z.array(z.enum(["github", "npm", "web"])).optional(),
         tags: z.array(z.string()).optional(),
-        sortBy: z.enum(["createdAt", "stars", "weeklyDownloads", "title"]).default("createdAt"),
+        sortBy: z
+          .enum(["createdAt", "updatedAt", "stars", "weeklyDownloads", "title"])
+          .default("createdAt"),
         sortOrder: z.enum(["asc", "desc"]).default("desc"),
       })
     )

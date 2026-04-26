@@ -347,6 +347,9 @@ function generateGithubResource(now: number): ResourceWithTags {
   const difficulty = pick(DIFFICULTIES);
   const resourceTags = pickN(TAG_POOL, randInt(2, 5));
   const stars = randInt(100, 150_000);
+  const createdAt = now - randInt(0, 365 * 24 * 60 * 60 * 1000);
+  const daysSinceCreation = Math.floor((now - createdAt) / (24 * 60 * 60 * 1000));
+  const updatedAt = createdAt + randInt(0, daysSinceCreation * 24 * 60 * 60 * 1000);
 
   return {
     resource: {
@@ -359,8 +362,8 @@ function generateGithubResource(now: number): ResourceWithTags {
       stars,
       weeklyDownloads: null,
       rawMeta: JSON.stringify({}),
-      createdAt: now - randInt(0, 365 * 24 * 60 * 60 * 1000),
-      updatedAt: now,
+      createdAt,
+      updatedAt,
     },
     tags: resourceTags,
   };
@@ -373,6 +376,9 @@ function generateNpmResource(now: number): ResourceWithTags {
   const resourceTags = pickN(TAG_POOL, randInt(2, 4));
   const downloads = randInt(10_000, 80_000_000);
   const suffix = nanoid(8);
+  const createdAt = now - randInt(0, 365 * 24 * 60 * 60 * 1000);
+  const daysSinceCreation = Math.floor((now - createdAt) / (24 * 60 * 60 * 1000));
+  const updatedAt = createdAt + randInt(0, daysSinceCreation * 24 * 60 * 60 * 1000);
 
   return {
     resource: {
@@ -385,8 +391,8 @@ function generateNpmResource(now: number): ResourceWithTags {
       stars: null,
       weeklyDownloads: downloads,
       rawMeta: JSON.stringify({}),
-      createdAt: now - randInt(0, 365 * 24 * 60 * 60 * 1000),
-      updatedAt: now,
+      createdAt,
+      updatedAt,
     },
     tags: resourceTags,
   };
@@ -400,6 +406,9 @@ function generateWebResource(now: number): ResourceWithTags {
   const difficulty = pick(DIFFICULTIES);
   const resourceTags = pickN(TAG_POOL, randInt(2, 5));
   const slug = topic.toLowerCase().replace(/\s+/g, "-");
+  const createdAt = now - randInt(0, 365 * 24 * 60 * 60 * 1000);
+  const daysSinceCreation = Math.floor((now - createdAt) / (24 * 60 * 60 * 1000));
+  const updatedAt = createdAt + randInt(0, daysSinceCreation * 24 * 60 * 60 * 1000);
 
   return {
     resource: {
@@ -412,8 +421,8 @@ function generateWebResource(now: number): ResourceWithTags {
       stars: null,
       weeklyDownloads: null,
       rawMeta: JSON.stringify({}),
-      createdAt: now - randInt(0, 365 * 24 * 60 * 60 * 1000),
-      updatedAt: now,
+      createdAt,
+      updatedAt,
     },
     tags: resourceTags,
   };

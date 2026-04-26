@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.4.0] - 2026-04-26
+
+### Added
+
+- `formatRelativeTime()` utility in `app/lib/formatDate.ts` — converts timestamps to human-readable strings (e.g. "3d ago", "2w ago").
+- "Updated" column in the resources table showing relative time since last update, with server-side sorting support.
+- `updatedAt` added as a valid sort column in the tRPC router schema.
+
+### Fixed
+
+- Seed data now generates realistic `updatedAt` values after `createdAt` instead of always using the current timestamp.
+
 ## 0.3.0
 
 ### Minor Changes

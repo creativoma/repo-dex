@@ -85,9 +85,10 @@ The dev server starts at `http://localhost:5173`.
 
 ## Versioning
 
-Versions are maintained manually in `package.json` and documented in `CHANGELOG.md`. 
+Versions are maintained manually in `package.json` and documented in `CHANGELOG.md`.
 
 When releasing a new version:
+
 1. Update `version` in `package.json`
 2. Document changes in `CHANGELOG.md` (under a new section with the date)
 3. Commit with message: `release: bump version to x.y.z`
