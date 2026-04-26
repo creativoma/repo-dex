@@ -1,0 +1,15 @@
+node_modules/
+.env
+build/
+.react-router/
+*.db
+
+.omc/*
+.omc
+
+coverage/
+*.log
+*.lock
+.DS_Store
+.idea/
+.vscode/

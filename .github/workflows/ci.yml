@@ -1,0 +1,54 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: latest
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Format check
+        run: pnpm format:check
+
+      - name: Type check
+        run: pnpm typecheck
+
+      - name: Tests
+        run: pnpm test
+        env:
+          TURSO_URL: file:./local.db
+          JWT_SECRET: test-secret-for-ci-at-least-32-chars-long
+          ADMIN_USER: admin
+          ADMIN_PASSWORD_HASH: ""
+          GEMINI_API_KEY: ""
+          NODE_ENV: test
+
+      - name: Build
+        run: pnpm build
+        env:
+          TURSO_URL: file:./local.db
+          JWT_SECRET: test-secret-for-ci-at-least-32-chars-long
+          ADMIN_USER: admin
+          ADMIN_PASSWORD_HASH: ""
+          GEMINI_API_KEY: ""
+          NODE_ENV: production

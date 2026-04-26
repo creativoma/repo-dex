@@ -1,0 +1,6 @@
+build/
+node_modules/
+.react-router/
+.omc/
+.claude/
+pnpm-lock.yaml
