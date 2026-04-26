@@ -8,8 +8,6 @@ const baseRow = {
   title: "Bar",
   description: "A description",
   author: "foo",
-  language: "TypeScript",
-  difficulty: "intermediate",
   stars: 100,
   weeklyDownloads: null,
   rawMeta: "{}",
@@ -27,8 +25,6 @@ describe("rowToResource", () => {
       title: "Bar",
       description: "A description",
       author: "foo",
-      language: "TypeScript",
-      difficulty: "intermediate",
       stars: 100,
       weeklyDownloads: null,
       tags: ["react", "typescript"],
@@ -47,16 +43,12 @@ describe("rowToResource", () => {
       ...baseRow,
       description: null,
       author: null,
-      language: null,
-      difficulty: null,
       stars: null,
       weeklyDownloads: null,
     };
     const result = rowToResource(row as never, []);
     expect(result.description).toBeNull();
     expect(result.author).toBeNull();
-    expect(result.language).toBeNull();
-    expect(result.difficulty).toBeNull();
     expect(result.stars).toBeNull();
     expect(result.weeklyDownloads).toBeNull();
   });
