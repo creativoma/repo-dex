@@ -7,6 +7,20 @@ and this project aims to follow Semantic Versioning.
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-04-26
+
+### Removed
+
+- `language` and `difficulty` fields removed from resources — dropped from DB schema, API, tRPC router, Gemini prompt, and all UI (table columns, sidebar filters, admin form).
+- `DifficultyLevel` type removed from `shared/types.ts`.
+- `LanguageBadge` and `DifficultyBadge` components are no longer used in the main view.
+
+### Changed
+
+- DB migration `0001`: `ALTER TABLE resources DROP COLUMN language` and `DROP COLUMN difficulty`.
+- `facets` tRPC endpoint no longer returns `languages`.
+- Gemini analysis prompt simplified — no longer asks for `difficulty` or `language`.
+
 ### Added
 
 - Documentation baseline: README, CONTRIBUTING, LICENSE, CHANGELOG, CODE_OF_CONDUCT, and SECURITY files.
