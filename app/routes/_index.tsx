@@ -18,6 +18,7 @@ import { FilterSection } from "~/components/FilterSection";
 import { FilterChip } from "~/components/FilterChip";
 import { TagBadge } from "~/components/TagBadge";
 import { AdminControls } from "~/components/AdminControls";
+import { ResourceCard } from "~/components/ResourceCard";
 import type { Resource } from "../../shared/types";
 
 function DeleteConfirmModal({
@@ -372,7 +373,131 @@ export default function Index() {
 
   return (
     <>
-      <div className="text-ink flex h-screen bg-white">
+      {/* ── Mobile layout ───────────────────────────────────────────────── */}
+      <div className="flex h-screen flex-col bg-white md:hidden">
+        {/* Brand header */}
+        <div className="border-line shrink-0 border-b px-4 pt-5 pb-4">
+          <div className="flex items-center gap-2.5">
+            <svg
+              width="28"
+              height="28"
+              viewBox="0 0 28 28"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+              aria-hidden="true"
+            >
+              <rect width="28" height="28" rx="6" fill="#533afd" />
+              <rect x="6" y="7" width="10" height="2" rx="1" fill="white" />
+              <rect x="6" y="11" width="16" height="2" rx="1" fill="white" fillOpacity="0.7" />
+              <rect x="6" y="15" width="13" height="2" rx="1" fill="white" fillOpacity="0.5" />
+              <rect x="6" y="19" width="8" height="2" rx="1" fill="white" fillOpacity="0.3" />
+            </svg>
+            <span className="font-mono text-[18px] leading-none tracking-tight">
+              <span className="text-muted font-normal">Repo</span>
+              <span className="text-primary font-bold">Dex</span>
+            </span>
+            <span className="bg-surface-alt text-muted rounded px-1.5 py-0.5 font-mono text-[10px] font-medium">
+              v{version}
+            </span>
+            <span className="bg-surface-alt text-muted rounded px-1.5 py-0.5 font-mono text-[10px] font-medium">
+              MIT
+            </span>
+          </div>
+          {/* Search */}
+          <div className="relative mt-3">
+            <svg
+              className="text-muted absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+              />
+            </svg>
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search resources…"
+              className="border-line bg-surface text-ink focus:border-primary w-full rounded border py-2.5 pr-3 pl-10 text-[14px] focus:outline-none"
+            />
+          </div>
+        </div>
+
+        {/* Card list */}
+        <div className="flex-1 overflow-y-auto px-4 py-3">
+          {isLoading && (
+            <div className="space-y-3">
+              {Array.from({ length: 8 }).map((_, i) => (
+                <div key={i} className="border-line rounded-lg border p-4">
+                  <div className="bg-line mb-2 h-3.5 w-40 animate-pulse rounded" />
+                  <div className="bg-line mb-3 h-2.5 w-full animate-pulse rounded" />
+                  <div className="flex gap-1.5">
+                    <div className="bg-line h-5 w-14 animate-pulse rounded-full" />
+                    <div className="bg-line h-5 w-10 animate-pulse rounded-full" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+          {!isLoading && allItems.length === 0 && (
+            <div className="py-16 text-center">
+              <p className="text-muted text-[14px]">No resources found.</p>
+              {search && (
+                <button onClick={() => setSearch("")} className="text-primary mt-2 text-[13px]">
+                  Clear search
+                </button>
+              )}
+            </div>
+          )}
+          {!isLoading && (
+            <div className="space-y-3">
+              {allItems.map((item) => (
+                <ResourceCard
+                  key={item.id}
+                  resource={item}
+                  activeTags={tagFilters}
+                  onTagClick={(tag: string) => toggle(tagFilters, setTagFilters, tag)}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Mobile footer */}
+        <div className="border-line shrink-0 space-y-1.5 border-t px-4 py-2.5">
+          {/* Row 1 — stats */}
+          <div className="flex justify-end">
+            {!isLoading && allItems.length > 0 && (
+              <span className="text-primary font-mono text-[12px] font-medium">
+                {allItems.length.toLocaleString()} resources
+              </span>
+            )}
+          </div>
+          {/* Row 2 — credits */}
+          <div className="border-line flex items-center justify-between border-t pt-1.5">
+            <span className="text-muted text-[11px]">by creativoma</span>
+            <a
+              href="https://github.com/creativoma/repo-dex"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-muted hover:text-ink transition-colors"
+              title="View on GitHub"
+            >
+              <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" />
+              </svg>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      {/* ── Desktop layout ──────────────────────────────────────────────── */}
+      <div className="text-ink hidden h-screen bg-white md:flex">
         {/* ── Sidebar ─────────────────────────────────────────────────────── */}
         <aside className="border-line flex h-screen w-52 shrink-0 flex-col border-r bg-white">
           {/* Brand */}

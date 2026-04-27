@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.2] - 2026-04-27
+
+### Added
+
+- Mobile-first layout: dedicated mobile view (< 768px) with brand header, full-width search, resource cards, and a two-row footer showing resource count, credits, and GitHub link.
+- Mobile view uses the existing `ResourceCard` component — no table on small screens.
+
 ## [0.4.1] - 2026-04-27
 
 ### Added
