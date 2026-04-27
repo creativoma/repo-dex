@@ -116,10 +116,17 @@ export default function Index() {
     },
   });
 
-  const { data: facetsData } = trpc.resources.facets.useQuery();
+  const [tagSearch, setTagSearch] = useState("");
+
+  const { data: facetsData } = trpc.resources.facets.useQuery(undefined, {
+    staleTime: 5 * 60 * 1000,
+  });
   const allTags = facetsData?.tags ?? [];
   const TAG_PREVIEW = 15;
-  const visibleTags = showAllTags ? allTags : allTags.slice(0, TAG_PREVIEW);
+  const filteredTags = tagSearch
+    ? allTags.filter((t) => t.toLowerCase().includes(tagSearch.toLowerCase()))
+    : allTags;
+  const visibleTags = showAllTags ? filteredTags : filteredTags.slice(0, TAG_PREVIEW);
 
   const sortCol = sorting[0];
   const sortBy =
@@ -141,6 +148,7 @@ export default function Index() {
       {
         getNextPageParam: (lastPage) => lastPage.nextCursor,
         initialCursor: 1,
+        staleTime: 2 * 60 * 1000,
       }
     );
 
@@ -399,32 +407,6 @@ export default function Index() {
             </div>
           </div>
 
-          {/* Search */}
-          <div className="px-4 pb-3">
-            <div className="relative">
-              <svg
-                className="text-muted absolute top-1/2 left-2.5 h-3.5 w-3.5 -translate-y-1/2"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2}
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                />
-              </svg>
-              <input
-                type="text"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search…"
-                className="border-line bg-surface text-ink focus:border-primary w-full rounded border py-1.5 pr-3 pl-8 text-[12px] focus:outline-none"
-              />
-            </div>
-          </div>
-
           {/* Filters */}
           <div className="border-line flex-1 overflow-y-auto border-t">
             <div className="flex items-center justify-between px-4 py-2.5">
@@ -454,6 +436,28 @@ export default function Index() {
 
             {allTags.length > 0 && (
               <FilterSection title="Tags">
+                <div className="relative mb-2">
+                  <svg
+                    className="text-muted absolute top-1/2 left-2 h-3 w-3 -translate-y-1/2"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                    />
+                  </svg>
+                  <input
+                    type="text"
+                    value={tagSearch}
+                    onChange={(e) => setTagSearch(e.target.value)}
+                    placeholder="Filter tags…"
+                    className="border-line bg-surface text-ink focus:border-primary w-full rounded border py-1 pr-2 pl-6 text-[11px] focus:outline-none"
+                  />
+                </div>
                 <div className="flex flex-wrap">
                   {visibleTags.map((tag) => (
                     <span key={tag} className="mr-1 mb-1">
@@ -464,13 +468,16 @@ export default function Index() {
                       />
                     </span>
                   ))}
+                  {filteredTags.length === 0 && (
+                    <span className="text-muted text-[11px]">No tags found</span>
+                  )}
                 </div>
-                {allTags.length > TAG_PREVIEW && (
+                {!tagSearch && filteredTags.length > TAG_PREVIEW && (
                   <button
                     onClick={() => setShowAllTags((v) => !v)}
                     className="text-muted hover:text-ink mt-1 text-[10px] transition-colors"
                   >
-                    {showAllTags ? "Show less" : `+${allTags.length - TAG_PREVIEW} more`}
+                    {showAllTags ? "Show less" : `+${filteredTags.length - TAG_PREVIEW} more`}
                   </button>
                 )}
               </FilterSection>
@@ -502,7 +509,31 @@ export default function Index() {
         <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
           {/* Title bar */}
           <div className="border-line flex shrink-0 items-center justify-between gap-3 border-b px-4 py-3">
-            <h1 className="text-ink text-[14px] font-medium tracking-tight">Catalog</h1>
+            <div className="flex items-center gap-3">
+              <h1 className="text-ink text-[14px] font-medium tracking-tight">Catalog</h1>
+              <div className="relative">
+                <svg
+                  className="text-muted absolute top-1/2 left-2.5 h-3.5 w-3.5 -translate-y-1/2"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                  />
+                </svg>
+                <input
+                  type="text"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Search resources…"
+                  className="border-line bg-surface text-ink focus:border-primary w-56 rounded border py-1.5 pr-3 pl-8 text-[12px] focus:outline-none"
+                />
+              </div>
+            </div>
             <AdminControls
               editingResource={editingResource}
               onEditClose={() => setEditingResource(null)}

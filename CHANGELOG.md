@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.4.1] - 2026-04-27
+
+### Added
+
+- Tag search input in the sidebar — filter visible tags by keyword in real time.
+- Resource search moved to the title bar, inline next to "Catalog".
+
+### Fixed
+
+- Orphaned tags (tags no longer referenced by any resource) are now deleted after a resource is deleted or updated.
+- React Query `staleTime` added to `facets` (5 min) and `list` (2 min) queries to reduce unnecessary Turso reads.
+
 ## [0.4.0] - 2026-04-26
 
 ### Added

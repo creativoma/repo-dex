@@ -228,6 +228,10 @@ export const resourcesRouter = router({
           .insert(resourceTags)
           .values(tagIds.map((tagId) => ({ resourceId: input.id, tagId })));
       }
+      // Remove orphaned tags after reassigning
+      await db
+        .delete(tags)
+        .where(sql`${tags.id} NOT IN (SELECT DISTINCT tag_id FROM resource_tags)`);
 
       return { id: input.id };
     }),
@@ -236,6 +240,8 @@ export const resourcesRouter = router({
     const db = getDb();
     // resourceTags cascade deletes via FK
     await db.delete(resources).where(eq(resources.id, input.id));
+    // Remove orphaned tags (no longer referenced by any resource)
+    await db.delete(tags).where(sql`${tags.id} NOT IN (SELECT DISTINCT tag_id FROM resource_tags)`);
     return { id: input.id };
   }),
 });
