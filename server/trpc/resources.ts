@@ -6,6 +6,48 @@ import { resources, tags, resourceTags } from "../db/schema";
 import type { Resource } from "../../shared/types";
 import { adminProcedure, publicProcedure, router } from "./trpc";
 
+const TAG_CATEGORIES = [
+  {
+    id: "ai",
+    label: "AI/ML",
+    keywords: ["ai", "ml", "llm", "agent", "gpt", "prompt", "model"],
+  },
+  {
+    id: "devtools",
+    label: "DevTools",
+    keywords: ["tool", "cli", "dev", "lint", "format", "test", "debug"],
+  },
+  {
+    id: "data",
+    label: "Data/DB",
+    keywords: ["db", "database", "postgres", "sqlite", "mysql", "orm", "prisma"],
+  },
+  {
+    id: "infra",
+    label: "Infra/Cloud",
+    keywords: ["cloud", "docker", "kubernetes", "ci", "cd", "infra", "server"],
+  },
+  {
+    id: "design",
+    label: "Design/UX",
+    keywords: ["design", "ux", "ui", "figma", "typography", "color"],
+  },
+  {
+    id: "frontend",
+    label: "Frontend",
+    keywords: ["react", "next", "vue", "svelte", "css", "tailwind", "frontend"],
+  },
+  {
+    id: "learning",
+    label: "Learning",
+    keywords: ["learn", "course", "tutorial", "docs", "guide"],
+  },
+] as const;
+
+function categoryWhere(category: (typeof TAG_CATEGORIES)[number]) {
+  return or(...category.keywords.map((keyword) => like(tags.name, `%${keyword}%`)));
+}
+
 export function rowToResource(row: typeof resources.$inferSelect, tagNames: string[]): Resource {
   return {
     id: row.id,
@@ -72,9 +114,36 @@ const SORT_COLUMNS = {
 export const resourcesRouter = router({
   facets: publicProcedure.query(async () => {
     const db = getDb();
-    const tagRows = await db.select({ name: tags.name }).from(tags).orderBy(asc(tags.name));
+    const countExpr = sql<number>`count(${resourceTags.tagId})`;
+    const tagRows = await db
+      .select({ name: tags.name, count: countExpr })
+      .from(tags)
+      .leftJoin(resourceTags, eq(tags.id, resourceTags.tagId))
+      .groupBy(tags.id)
+      .orderBy(desc(countExpr), asc(tags.name));
+
+    const categories = await Promise.all(
+      TAG_CATEGORIES.map(async (category) => {
+        const categoryCondition = categoryWhere(category);
+        if (!categoryCondition) {
+          return { id: category.id, label: category.label, count: 0 };
+        }
+        const countRow = await db
+          .select({ count: sql<number>`count(distinct ${resources.id})` })
+          .from(resources)
+          .innerJoin(resourceTags, eq(resources.id, resourceTags.resourceId))
+          .innerJoin(tags, eq(tags.id, resourceTags.tagId))
+          .where(categoryCondition);
+        return {
+          id: category.id,
+          label: category.label,
+          count: countRow[0]?.count ?? 0,
+        };
+      })
+    );
     return {
-      tags: tagRows.map((r) => r.name),
+      tags: tagRows,
+      categories,
     };
   }),
 
@@ -87,6 +156,7 @@ export const resourcesRouter = router({
         search: z.string().optional(),
         types: z.array(z.enum(["github", "npm", "web"])).optional(),
         tags: z.array(z.string()).optional(),
+        category: z.string().optional(),
         sortBy: z
           .enum(["createdAt", "updatedAt", "stars", "weeklyDownloads", "title"])
           .default("createdAt"),
@@ -119,6 +189,19 @@ export const resourcesRouter = router({
               SELECT 1 FROM resource_tags rt2
               JOIN tags t2 ON t2.id = rt2.tag_id
               WHERE rt2.resource_id = ${resources.id} AND t2.name = ${tag}
+            )`
+          );
+        }
+      }
+      if (input.category) {
+        const category = TAG_CATEGORIES.find((entry) => entry.id === input.category);
+        if (category) {
+          const categoryCondition = categoryWhere(category);
+          conditions.push(
+            sql`EXISTS (
+              SELECT 1 FROM resource_tags rt2
+              JOIN tags ON tags.id = rt2.tag_id
+              WHERE rt2.resource_id = ${resources.id} AND (${categoryCondition})
             )`
           );
         }

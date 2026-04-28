@@ -1,4 +1,12 @@
-import { useRef, useMemo, useState, useEffect } from "react";
+import {
+  useRef,
+  useMemo,
+  useState,
+  useEffect,
+  useCallback,
+  type Dispatch,
+  type SetStateAction,
+} from "react";
 import { version } from "../../package.json";
 import {
   useReactTable,
@@ -99,6 +107,7 @@ export default function Index() {
   const [search, setSearch] = useState("");
   const [typeFilters, setTypeFilters] = useState<string[]>([]);
   const [tagFilters, setTagFilters] = useState<string[]>([]);
+  const [categoryFilter, setCategoryFilter] = useState<string | null>(null);
   const [editingResource, setEditingResource] = useState<Resource | null>(null);
   const [deletingResource, setDeletingResource] = useState<Resource | null>(null);
 
@@ -122,12 +131,23 @@ export default function Index() {
   const { data: facetsData } = trpc.resources.facets.useQuery(undefined, {
     staleTime: 5 * 60 * 1000,
   });
-  const allTags = facetsData?.tags ?? [];
+  const tagStats = useMemo(() => facetsData?.tags ?? [], [facetsData?.tags]);
+  const categoryStats = useMemo(() => facetsData?.categories ?? [], [facetsData?.categories]);
+  const [tagSort, setTagSort] = useState<"popular" | "az">("popular");
   const TAG_PREVIEW = 15;
-  const filteredTags = tagSearch
-    ? allTags.filter((t) => t.toLowerCase().includes(tagSearch.toLowerCase()))
-    : allTags;
-  const visibleTags = showAllTags ? filteredTags : filteredTags.slice(0, TAG_PREVIEW);
+  const orderedTagStats = useMemo(() => {
+    if (tagSort === "popular") return tagStats;
+    return [...tagStats].sort((a, b) => a.name.localeCompare(b.name));
+  }, [tagSort, tagStats]);
+  const filteredTagStats = tagSearch
+    ? orderedTagStats.filter((t) => t.name.toLowerCase().includes(tagSearch.toLowerCase()))
+    : orderedTagStats;
+  const visibleTags = showAllTags ? filteredTagStats : filteredTagStats.slice(0, TAG_PREVIEW);
+  const CATEGORY_CARD_LIMIT = 6;
+  const categoryCards = useMemo(
+    () => categoryStats.filter((c) => c.count > 0).slice(0, CATEGORY_CARD_LIMIT),
+    [categoryStats]
+  );
 
   const sortCol = sorting[0];
   const sortBy =
@@ -143,6 +163,7 @@ export default function Index() {
         search: debouncedSearch || undefined,
         types: typeFilters.length ? (typeFilters as ("github" | "npm" | "web")[]) : undefined,
         tags: tagFilters.length ? tagFilters : undefined,
+        category: categoryFilter ?? undefined,
         sortBy,
         sortOrder,
       },
@@ -156,9 +177,17 @@ export default function Index() {
   const allItems = useMemo(() => data?.pages.flatMap((p) => p.items) ?? [], [data]);
   const totalCount = data?.pages[0]?.total ?? 0;
 
-  function toggle(arr: string[], setArr: (v: string[]) => void, val: string) {
-    setArr(arr.includes(val) ? arr.filter((x) => x !== val) : [...arr, val]);
-  }
+  const toggle = useCallback((setArr: Dispatch<SetStateAction<string[]>>, val: string) => {
+    setArr((prev) => (prev.includes(val) ? prev.filter((x) => x !== val) : [...prev, val]));
+  }, []);
+
+  const toggleTag = useCallback(
+    (val: string) => {
+      setCategoryFilter(null);
+      toggle(setTagFilters, val);
+    },
+    [toggle]
+  );
 
   const columns = useMemo(
     () => [
@@ -208,7 +237,12 @@ export default function Index() {
           return (
             <div className="flex flex-wrap items-center gap-1">
               {tags.slice(0, 4).map((tag) => (
-                <TagBadge key={tag} tag={tag} active={tagFilters.includes(tag)} />
+                <TagBadge
+                  key={tag}
+                  tag={tag}
+                  active={tagFilters.includes(tag)}
+                  onClick={() => toggleTag(tag)}
+                />
               ))}
               {tags.length > 4 && (
                 <span className="text-muted text-[11px]">+{tags.length - 4}</span>
@@ -324,7 +358,7 @@ export default function Index() {
           ]
         : []),
     ],
-    [tagFilters, isAdmin]
+    [tagFilters, isAdmin, toggleTag]
   );
 
   // eslint-disable-next-line react-hooks/incompatible-library
@@ -361,12 +395,48 @@ export default function Index() {
   const paddingBottom =
     virtualRows.length > 0 ? totalSize - (virtualRows[virtualRows.length - 1]?.end ?? 0) : 0;
 
-  const activeFiltersCount = typeFilters.length + tagFilters.length;
+  const activeFiltersCount = typeFilters.length + tagFilters.length + (categoryFilter ? 1 : 0);
+  const activeCategoryLabel = useMemo(() => {
+    if (!categoryFilter) return null;
+    const match = categoryStats.find((category) => category.id === categoryFilter);
+    return match?.label ?? categoryFilter;
+  }, [categoryFilter, categoryStats]);
+
+  const activeFilterPills = useMemo(() => {
+    const items: Array<{ key: string; label: string; onRemove: () => void }> = [];
+
+    typeFilters.forEach((value) => {
+      items.push({
+        key: `type-${value}`,
+        label: `type: ${value}`,
+        onRemove: () => setTypeFilters((prev) => prev.filter((existing) => existing !== value)),
+      });
+    });
+
+    tagFilters.forEach((value) => {
+      items.push({
+        key: `tag-${value}`,
+        label: `tag: ${value}`,
+        onRemove: () => setTagFilters((prev) => prev.filter((existing) => existing !== value)),
+      });
+    });
+
+    if (activeCategoryLabel) {
+      items.push({
+        key: `category-${categoryFilter}`,
+        label: `category: ${activeCategoryLabel}`,
+        onRemove: () => setCategoryFilter(null),
+      });
+    }
+
+    return items;
+  }, [typeFilters, tagFilters, activeCategoryLabel, categoryFilter]);
 
   function clearAll() {
     setSearch("");
     setTypeFilters([]);
     setTagFilters([]);
+    setCategoryFilter(null);
   }
 
   const VISIBLE_COL_COUNT = columns.length;
@@ -422,16 +492,98 @@ export default function Index() {
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search resources…"
-              className="border-line bg-surface text-ink focus:border-primary w-full rounded border py-2.5 pr-3 pl-10 text-[14px] focus:outline-none"
+              placeholder="Search resources..."
+              className="border-line bg-surface text-ink focus:border-primary w-full rounded border py-2.5 pr-10 pl-10 text-[14px] focus:outline-none"
             />
+            {search && (
+              <button
+                type="button"
+                onClick={() => setSearch("")}
+                className="text-muted hover:text-ink absolute top-1/2 right-3 -translate-y-1/2 text-[11px] transition-colors"
+                aria-label="Clear search"
+              >
+                Clear
+              </button>
+            )}
           </div>
+          {activeFilterPills.length > 0 && (
+            <div className="mt-3">
+              <div className="flex items-center justify-between">
+                <span className="text-muted text-[10px] font-semibold tracking-[0.12em] uppercase">
+                  Active
+                </span>
+                <button
+                  type="button"
+                  onClick={clearAll}
+                  className="text-muted hover:text-ink text-[10px] transition-colors"
+                >
+                  Clear all
+                </button>
+              </div>
+              <div className="mt-2 flex flex-wrap">
+                {activeFilterPills.map((item) => (
+                  <FilterChip key={item.key} label={item.label} active onClick={item.onRemove} />
+                ))}
+              </div>
+            </div>
+          )}
+          {categoryCards.length > 0 && (
+            <div className="mt-4">
+              <div className="mb-2 flex items-center justify-between">
+                <p className="text-muted text-[10px] font-semibold tracking-[0.12em] uppercase">
+                  Categories
+                </p>
+                {categoryFilter && (
+                  <button
+                    type="button"
+                    onClick={() => setCategoryFilter(null)}
+                    className="text-muted hover:text-ink text-[10px] transition-colors"
+                  >
+                    Clear category
+                  </button>
+                )}
+              </div>
+              <div className="flex gap-2 overflow-x-auto pb-1">
+                {categoryCards.map((category) => {
+                  const isActive = categoryFilter === category.id;
+                  return (
+                    <button
+                      key={category.id}
+                      type="button"
+                      onClick={() => {
+                        setCategoryFilter((prev) => (prev === category.id ? null : category.id));
+                        setTagFilters([]);
+                      }}
+                      className={`min-w-35 rounded-lg border px-3 py-2 text-left text-[12px] transition-colors ${
+                        isActive
+                          ? "border-primary bg-primary/10 text-primary"
+                          : "border-line text-ink hover:bg-surface bg-white"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="font-semibold">{category.label}</span>
+                        <span className="text-muted font-mono text-[10px]">
+                          {category.count.toLocaleString()}
+                        </span>
+                      </div>
+                      <span className="text-muted mt-1 block text-[10px]">
+                        {isActive ? "Selected" : "Tap to filter"}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Card list */}
         <div className="flex-1 overflow-y-auto px-4 py-3">
           {isLoading && (
             <div className="space-y-3">
+              <p className="sr-only" role="status" aria-live="polite">
+                Loading resources...
+              </p>
               {Array.from({ length: 8 }).map((_, i) => (
                 <div key={i} className="border-line rounded-lg border p-4">
                   <div className="bg-line mb-2 h-3.5 w-40 animate-pulse rounded" />
@@ -446,9 +598,20 @@ export default function Index() {
           )}
           {!isLoading && allItems.length === 0 && (
             <div className="py-16 text-center">
-              <p className="text-muted text-[14px]">No resources found.</p>
-              {search && (
-                <button onClick={() => setSearch("")} className="text-primary mt-2 text-[13px]">
+              <p className="text-muted text-[14px]">
+                No results. Try clearing a filter or adjusting your search.
+              </p>
+              {activeFiltersCount > 0 && (
+                <button type="button" onClick={clearAll} className="text-primary mt-2 text-[13px]">
+                  Clear filters
+                </button>
+              )}
+              {search && activeFiltersCount === 0 && (
+                <button
+                  type="button"
+                  onClick={() => setSearch("")}
+                  className="text-primary mt-2 text-[13px]"
+                >
                   Clear search
                 </button>
               )}
@@ -461,7 +624,7 @@ export default function Index() {
                   key={item.id}
                   resource={item}
                   activeTags={tagFilters}
-                  onTagClick={(tag: string) => toggle(tagFilters, setTagFilters, tag)}
+                  onTagClick={(tag: string) => toggleTag(tag)}
                 />
               ))}
             </div>
@@ -472,9 +635,9 @@ export default function Index() {
         <div className="border-line shrink-0 space-y-1.5 border-t px-4 py-2.5">
           {/* Row 1 — stats */}
           <div className="flex justify-end">
-            {!isLoading && allItems.length > 0 && (
+            {!isLoading && (
               <span className="text-primary font-mono text-[12px] font-medium">
-                {allItems.length.toLocaleString()} resources
+                {allItems.length.toLocaleString()} of {totalCount.toLocaleString()} resources
               </span>
             )}
           </div>
@@ -548,19 +711,59 @@ export default function Index() {
               )}
             </div>
 
+            {activeFilterPills.length > 0 && (
+              <div className="border-line border-t px-4 py-2">
+                <p className="text-muted mb-2 text-[10px] font-semibold tracking-[0.12em] uppercase">
+                  Active
+                </p>
+                <div className="flex flex-wrap">
+                  {activeFilterPills.map((item) => (
+                    <FilterChip key={item.key} label={item.label} active onClick={item.onRemove} />
+                  ))}
+                </div>
+              </div>
+            )}
+
             <FilterSection title="Type">
               {(["github", "npm", "web"] as const).map((t) => (
                 <FilterChip
                   key={t}
                   label={t}
                   active={typeFilters.includes(t)}
-                  onClick={() => toggle(typeFilters, setTypeFilters, t)}
+                  onClick={() => toggle(setTypeFilters, t)}
                 />
               ))}
             </FilterSection>
 
-            {allTags.length > 0 && (
+            {tagStats.length > 0 && (
               <FilterSection title="Tags">
+                <div className="mb-2 flex items-center justify-between">
+                  <span className="text-muted text-[10px]">Sort</span>
+                  <div className="inline-flex overflow-hidden rounded border border-slate-200 text-[10px]">
+                    <button
+                      type="button"
+                      onClick={() => setTagSort("popular")}
+                      className={`px-2 py-0.5 ${
+                        tagSort === "popular"
+                          ? "bg-slate-900 text-white"
+                          : "text-muted hover:text-ink bg-white"
+                      }`}
+                    >
+                      Top
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setTagSort("az")}
+                      className={`px-2 py-0.5 ${
+                        tagSort === "az"
+                          ? "bg-slate-900 text-white"
+                          : "text-muted hover:text-ink bg-white"
+                      }`}
+                    >
+                      A-Z
+                    </button>
+                  </div>
+                </div>
                 <div className="relative mb-2">
                   <svg
                     className="text-muted absolute top-1/2 left-2 h-3 w-3 -translate-y-1/2"
@@ -583,26 +786,30 @@ export default function Index() {
                     className="border-line bg-surface text-ink focus:border-primary w-full rounded border py-1 pr-2 pl-6 text-[11px] focus:outline-none"
                   />
                 </div>
-                <div className="flex flex-wrap">
-                  {visibleTags.map((tag) => (
-                    <span key={tag} className="mr-1 mb-1">
-                      <TagBadge
-                        tag={tag}
-                        active={tagFilters.includes(tag)}
-                        onClick={() => toggle(tagFilters, setTagFilters, tag)}
-                      />
-                    </span>
-                  ))}
-                  {filteredTags.length === 0 && (
-                    <span className="text-muted text-[11px]">No tags found</span>
-                  )}
+                <div className={showAllTags ? "pr-1" : "max-h-48 overflow-y-auto pr-1"}>
+                  <div className="flex flex-wrap">
+                    {visibleTags.map((tag) => (
+                      <span key={tag.name} className="mr-1 mb-1">
+                        <TagBadge
+                          tag={tag.name}
+                          count={tag.count}
+                          active={tagFilters.includes(tag.name)}
+                          onClick={() => toggleTag(tag.name)}
+                        />
+                      </span>
+                    ))}
+                    {filteredTagStats.length === 0 && (
+                      <span className="text-muted text-[11px]">No tags found</span>
+                    )}
+                  </div>
                 </div>
-                {!tagSearch && filteredTags.length > TAG_PREVIEW && (
+                {!tagSearch && filteredTagStats.length > TAG_PREVIEW && (
                   <button
+                    type="button"
                     onClick={() => setShowAllTags((v) => !v)}
                     className="text-muted hover:text-ink mt-1 text-[10px] transition-colors"
                   >
-                    {showAllTags ? "Show less" : `+${filteredTags.length - TAG_PREVIEW} more`}
+                    {showAllTags ? "Show less" : `+${filteredTagStats.length - TAG_PREVIEW} more`}
                   </button>
                 )}
               </FilterSection>
@@ -655,8 +862,33 @@ export default function Index() {
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   placeholder="Search resources…"
-                  className="border-line bg-surface text-ink focus:border-primary w-56 rounded border py-1.5 pr-3 pl-8 text-[12px] focus:outline-none"
+                  className="border-line bg-surface text-ink focus:border-primary w-56 rounded border py-1.5 pr-8 pl-8 text-[12px] focus:outline-none"
                 />
+                {search && (
+                  <button
+                    type="button"
+                    onClick={() => setSearch("")}
+                    className="text-muted hover:text-ink absolute top-1/2 right-2 -translate-y-1/2 text-[10px] transition-colors"
+                    aria-label="Clear search"
+                  >
+                    Clear
+                  </button>
+                )}
+              </div>
+              <div className="text-muted flex items-center gap-2 text-[11px]">
+                <span>
+                  Order:
+                  {sortCol ? ` ${sortCol.id} ${sortCol.desc ? "desc" : "asc"}` : " default"}
+                </span>
+                {sorting.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => setSorting([])}
+                    className="text-muted hover:text-ink transition-colors"
+                  >
+                    Reset
+                  </button>
+                )}
               </div>
             </div>
             <AdminControls
@@ -664,6 +896,58 @@ export default function Index() {
               onEditClose={() => setEditingResource(null)}
             />
           </div>
+
+          {categoryCards.length > 0 && (
+            <div className="border-line shrink-0 border-b bg-white px-4 py-3">
+              <div className="flex items-center justify-between">
+                <span className="text-muted text-[10px] font-semibold tracking-[0.12em] uppercase">
+                  Categories
+                </span>
+                <div className="flex items-center gap-3">
+                  {categoryFilter && (
+                    <button
+                      type="button"
+                      onClick={() => setCategoryFilter(null)}
+                      className="text-muted hover:text-ink text-[11px] transition-colors"
+                    >
+                      Clear category
+                    </button>
+                  )}
+                  <span className="text-muted text-[11px]">Tap to filter</span>
+                </div>
+              </div>
+              <div className="mt-2 grid grid-cols-2 gap-2 lg:grid-cols-3">
+                {categoryCards.map((category) => {
+                  const isActive = categoryFilter === category.id;
+                  return (
+                    <button
+                      key={category.id}
+                      type="button"
+                      onClick={() => {
+                        setCategoryFilter((prev) => (prev === category.id ? null : category.id));
+                        setTagFilters([]);
+                      }}
+                      className={`flex items-center justify-between rounded-lg border px-3 py-2 text-left transition-colors ${
+                        isActive
+                          ? "border-primary bg-primary/10 text-primary"
+                          : "border-line text-ink hover:bg-surface bg-white"
+                      }`}
+                    >
+                      <div>
+                        <div className="text-[12px] font-semibold">{category.label}</div>
+                        <div className="text-muted text-[10px]">
+                          {category.count.toLocaleString()} resources
+                        </div>
+                      </div>
+                      <div className="text-muted font-mono text-[10px]">
+                        {isActive ? "On" : "Filter"}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
           {/* Table scroll area */}
           <div ref={parentRef} className="flex-1 overflow-y-auto">
@@ -678,39 +962,56 @@ export default function Index() {
                           ? "hover:text-ink cursor-pointer"
                           : "cursor-default"
                       }`}
-                      onClick={header.column.getToggleSortingHandler()}
                     >
-                      <span className="inline-flex items-center">
-                        {flexRender(header.column.columnDef.header, header.getContext())}
-                        {header.column.getCanSort() && (
+                      {header.column.getCanSort() ? (
+                        <button
+                          type="button"
+                          onClick={header.column.getToggleSortingHandler()}
+                          className="inline-flex w-full items-center text-left"
+                        >
+                          {flexRender(header.column.columnDef.header, header.getContext())}
                           <SortIcon sorted={header.column.getIsSorted()} />
-                        )}
-                      </span>
+                        </button>
+                      ) : (
+                        <span className="inline-flex items-center">
+                          {flexRender(header.column.columnDef.header, header.getContext())}
+                        </span>
+                      )}
                     </th>
                   ))}
                 </tr>
               </thead>
               <tbody>
                 {/* Loading skeletons */}
-                {isLoading &&
-                  Array.from({ length: 14 }).map((_, i) => (
-                    <tr key={i} className="border-surface border-b">
-                      <td className="py-2.5 pr-3 pl-5">
-                        <div className="flex items-center gap-2.5">
-                          <div className="bg-line h-3.75 w-3.75 shrink-0 animate-pulse rounded" />
-                          <div className="space-y-1.5">
-                            <div className="bg-line h-2.5 w-32 animate-pulse rounded" />
-                            <div className="bg-line h-2 w-48 animate-pulse rounded" />
-                          </div>
+                {isLoading && (
+                  <>
+                    <tr>
+                      <td colSpan={VISIBLE_COL_COUNT}>
+                        <div className="sr-only" role="status">
+                          Loading resources...
                         </div>
                       </td>
-                      {Array.from({ length: VISIBLE_COL_COUNT - 1 }).map((_, j) => (
-                        <td key={j} className="px-3 py-2.5">
-                          <div className="bg-line h-4 w-12 animate-pulse rounded" />
-                        </td>
-                      ))}
                     </tr>
-                  ))}
+                    {Array.from({ length: 14 }).map((_, i) => (
+                      <tr key={i} className="border-surface border-b">
+                        <td className="py-2.5 pr-3 pl-5">
+                          <div className="flex items-center gap-2.5">
+                            <div className="bg-line h-3.75 w-3.75 shrink-0 animate-pulse rounded" />
+                            <div className="space-y-1.5">
+                              <div className="bg-line h-2.5 w-32 animate-pulse rounded" />
+                              <div className="bg-line h-2 w-48 animate-pulse rounded" />
+                            </div>
+                          </div>
+                        </td>
+                        {Array.from({ length: VISIBLE_COL_COUNT - 1 }).map((_, j) => (
+                          <td key={j} className="px-3 py-2.5">
+                            <div className="bg-line h-4 w-12 animate-pulse rounded" />
+                          </td>
+                        ))}
+                      </tr>
+                    ))}
+                  </>
+                )}
 
                 {/* Virtual padding — top */}
                 {!isLoading && paddingTop > 0 && (
@@ -749,7 +1050,7 @@ export default function Index() {
                   <tr>
                     <td colSpan={VISIBLE_COL_COUNT} className="px-5 py-14 text-center">
                       <p className="text-muted text-[13px] font-medium">
-                        No resources match these filters.
+                        No results. Try removing tags or resetting filters.
                       </p>
                       <button
                         onClick={clearAll}
@@ -768,12 +1069,7 @@ export default function Index() {
           {!isLoading && (
             <div className="border-line flex h-10 shrink-0 items-center justify-end gap-3 border-t bg-white/88 px-5 backdrop-blur-[10px] [-webkit-backdrop-filter:blur(10px)]">
               <span className="text-muted font-mono text-[11px]">
-                {allItems.length.toLocaleString()}
-                {totalCount > allItems.length ? (
-                  <> of {totalCount.toLocaleString()}</>
-                ) : (
-                  totalCount > 0 && " · all loaded"
-                )}
+                {allItems.length.toLocaleString()} of {totalCount.toLocaleString()}
               </span>
               {isFetchingNextPage && (
                 <svg className="text-muted h-3 w-3 animate-spin" fill="none" viewBox="0 0 24 24">
