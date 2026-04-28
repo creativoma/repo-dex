@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.4.3] - 2026-04-28
+
+### Added
+
+- Tag facets now include usage counts and a popularity sort.
+- Category facets and category filter support in the resources list.
+- Active filter summary chips with one-click removal.
+- Clear controls for search and category filters.
+
+### Changed
+
+- Empty and loading states now give clearer guidance and status messaging.
+- Sorting header uses an accessible button control.
+- Mobile and desktop stats now show "X of Y" consistently.
+- Dependency updates (tRPC, React Query, TypeScript ESLint, Prettier Tailwind plugin).
+
+### Fixed
+
+- Filter and tag controls now expose pressed state for accessibility.
+
 ## [0.4.2] - 2026-04-27
 
 ### Added
