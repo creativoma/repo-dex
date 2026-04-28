@@ -9,7 +9,9 @@ export function FilterChip({
 }) {
   return (
     <button
+      type="button"
       onClick={onClick}
+      aria-pressed={active}
       className={`mr-1 mb-1 inline-flex items-center rounded px-2 py-0.5 text-[11px] font-medium transition-all duration-150 ${
         active
           ? "bg-primary text-white"

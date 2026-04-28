@@ -2,6 +2,7 @@ interface TagBadgeProps {
   tag: string;
   onClick?: () => void;
   active?: boolean;
+  count?: number;
 }
 
 // Vibrant mid-tones from DESIGN.md — saturated, not near-black, white text
@@ -24,12 +25,13 @@ function tagPalette(tag: string) {
   return TAG_PALETTE[Math.abs(hash) % TAG_PALETTE.length];
 }
 
-export function TagBadge({ tag, onClick, active }: TagBadgeProps) {
+export function TagBadge({ tag, onClick, active, count }: TagBadgeProps) {
   const { bg, text } = tagPalette(tag);
   return (
     <button
       type="button"
       onClick={onClick}
+      aria-pressed={onClick ? Boolean(active) : undefined}
       className={`inline-flex items-center rounded px-1.5 py-px text-[11px] font-medium transition-opacity ${
         active
           ? "ring-primary opacity-100 ring-2 ring-offset-1 ring-offset-white"
@@ -41,6 +43,11 @@ export function TagBadge({ tag, onClick, active }: TagBadgeProps) {
       }}
     >
       {tag}
+      {typeof count === "number" && (
+        <span className="ml-1 rounded bg-white/25 px-1 text-[9px] font-semibold text-white/90">
+          {count}
+        </span>
+      )}
     </button>
   );
 }
