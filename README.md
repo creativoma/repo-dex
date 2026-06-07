@@ -76,10 +76,9 @@ The dev server starts at `http://localhost:5173`.
 | `pnpm db:push`                 | Apply Drizzle schema                         |
 | `pnpm db:studio`               | Open Drizzle Studio                          |
 | `pnpm db:migrate`              | Run migration script                         |
+| `pnpm db:check`                | Check database connectivity/state            |
 | `pnpm db:seed`                 | Seed sample data                             |
 | `pnpm gen:password <pw>`       | Generate bcrypt hash for `.env`              |
-| `pnpm changeset`               | Open interactive prompt to describe a change |
-| `pnpm version-packages`        | Bump version and update `CHANGELOG.md`       |
 
 ---
 
