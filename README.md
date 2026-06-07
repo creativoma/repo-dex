@@ -63,22 +63,22 @@ The dev server starts at `http://localhost:5173`.
 
 ## Scripts
 
-| Command                        | Description                                  |
-| ------------------------------ | -------------------------------------------- |
-| `pnpm dev`                     | Start dev server with HMR                    |
-| `pnpm build`                   | Production build                             |
-| `pnpm start`                   | Serve production build                       |
-| `pnpm typecheck`               | Generate route types and run `tsc`           |
-| `pnpm test`                    | Run test suite                               |
-| `pnpm test:coverage`           | Run tests with v8 coverage                   |
-| `pnpm lint` / `lint:fix`       | ESLint                                       |
-| `pnpm format` / `format:check` | Prettier                                     |
-| `pnpm db:push`                 | Apply Drizzle schema                         |
-| `pnpm db:studio`               | Open Drizzle Studio                          |
-| `pnpm db:migrate`              | Run migration script                         |
-| `pnpm db:check`                | Check database connectivity/state            |
-| `pnpm db:seed`                 | Seed sample data                             |
-| `pnpm gen:password <pw>`       | Generate bcrypt hash for `.env`              |
+| Command                        | Description                        |
+| ------------------------------ | ---------------------------------- |
+| `pnpm dev`                     | Start dev server with HMR          |
+| `pnpm build`                   | Production build                   |
+| `pnpm start`                   | Serve production build             |
+| `pnpm typecheck`               | Generate route types and run `tsc` |
+| `pnpm test`                    | Run test suite                     |
+| `pnpm test:coverage`           | Run tests with v8 coverage         |
+| `pnpm lint` / `lint:fix`       | ESLint                             |
+| `pnpm format` / `format:check` | Prettier                           |
+| `pnpm db:push`                 | Apply Drizzle schema               |
+| `pnpm db:studio`               | Open Drizzle Studio                |
+| `pnpm db:migrate`              | Run migration script               |
+| `pnpm db:check`                | Check database connectivity/state  |
+| `pnpm db:seed`                 | Seed sample data                   |
+| `pnpm gen:password <pw>`       | Generate bcrypt hash for `.env`    |
 
 ---
 
