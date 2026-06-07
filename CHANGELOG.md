@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.5.0] - 2026-06-07
+
+### Added
+
+- Chrome DevTools workspace endpoint (`/.well-known/appspecific/com.chrome.devtools.json`) to silence dev-server probe requests.
+- React Router v8 future flags enabled (middleware, split route modules, Vite environment API, pass-through requests, trailing-slash-aware data requests).
+- pnpm workspace config with an `esbuild` override to address a known vulnerability in versions `<=0.24.2`.
+
+### Changed
+
+- `gen-password-hash` script now escapes `$` in generated bcrypt hashes so Vite's dotenv-expand doesn't strip them when added to `.env`.
+- `rawMeta` schema now validates with `z.record(z.string(), z.unknown())` for compatibility with Zod 4.
+- Search input suppresses hydration warnings caused by browser autofill.
+- Dependency updates (React, React Router, Tailwind CSS, Zod, TypeScript, Vite, Vitest, and others).
+
 ## [0.4.3] - 2026-04-28
 
 ### Added

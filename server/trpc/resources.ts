@@ -100,7 +100,7 @@ const resourceCreateSchema = z.object({
   stars: z.number().int().optional(),
   weeklyDownloads: z.number().int().optional(),
   tags: z.array(z.string()).default([]),
-  rawMeta: z.record(z.unknown()).default({}),
+  rawMeta: z.record(z.string(), z.unknown()).default({}),
 });
 
 const SORT_COLUMNS = {

@@ -862,6 +862,7 @@ export default function Index() {
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   placeholder="Search resources…"
+                  suppressHydrationWarning
                   className="border-line bg-surface text-ink focus:border-primary w-56 rounded border py-1.5 pr-8 pl-8 text-[12px] focus:outline-none"
                 />
                 {search && (

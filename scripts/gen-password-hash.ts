@@ -8,5 +8,10 @@ if (!password) {
 }
 
 const hash = await bcrypt.hash(password, 12);
+
+// Vite's dotenv-expand treats `$name` as a variable reference even inside quotes,
+// stripping it from the value. Escaping with `\$` keeps the literal `$` from the bcrypt hash.
+const escapedHash = hash.replace(/\$/g, "\\$");
+
 console.log(`\nAdd this to your .env:\n`);
-console.log(`ADMIN_PASSWORD_HASH="${hash}"\n`);
+console.log(`ADMIN_PASSWORD_HASH='${escapedHash}'\n`);
